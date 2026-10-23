@@ -43,6 +43,8 @@ targets:
     sources:
       - path: Widget
       - path: Shared
+      - path: Resources/Assets.xcassets/Capybara.imageset
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: de.claua.barapause.widget
