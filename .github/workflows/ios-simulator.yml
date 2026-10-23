@@ -27,7 +27,7 @@ jobs:
       - name: Parse all Swift sources (syntax gate)
         run: |
           set -euo pipefail
-          find App Shared Widget Monitor Shield -name '*.swift' -print0 |
+          find App Shared Widget Monitor Shield Share -name '*.swift' -print0 |
             while IFS= read -r -d '' f; do
               echo "Parsing $f"
               xcrun swiftc -frontend -parse "$f"
