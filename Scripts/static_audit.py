@@ -56,7 +56,7 @@ for path,expected in [
     ("Design/BaraPause-4096.png",(4096,4096))
 ]:
     b=(root/path).read_bytes()
-    assert b[:8]==b"\\x89PNG\\r\\n\\x1a\\n"
+    assert b[:8]==b"\x89PNG\r\n\x1a\n"
     assert struct.unpack(">II",b[16:24])==expected, path
 
 swift_files=list(root.glob("App/*.swift"))+list(root.glob("Shared/*.swift"))
@@ -66,7 +66,7 @@ names={}
 for file in swift_files:
     content=file.read_text(encoding="utf-8")
     assert content.strip().startswith(("import ","//")),file
-    for name in re.findall(r"(?m)^\\s*(?:(?:@MainActor|final|private|public|internal)\\s+)*(?:struct|class|enum)\\s+(\\w+)",content):
+    for name in re.findall(r"(?m)^\s*(?:(?:@MainActor|final|private|public|internal)\s+)*(?:struct|class|enum)\s+(\w+)",content):
         assert name not in names,f"Duplicate Swift type {name}: {names.get(name)} and {file}"
         names[name]=str(file.relative_to(root))
 screen=(root/"App/ScreenTimeController.swift").read_text(encoding="utf-8")
