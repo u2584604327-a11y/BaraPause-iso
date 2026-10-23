@@ -50,6 +50,10 @@ struct ScreenTimeView: View {
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Button("刷新真实监控状态") { controller.refreshStatus() }
+                if controller.pendingLimitChange && controller.monitoring {
+                    Text("本地限额已修改，但系统仍按旧限额运行。点击「开启每日限额」重新登记才会生效。")
+                        .font(.caption).foregroundStyle(.orange)
+                }
                 if controller.recoveryNeeded {
                     Button("重新登记系统监控") {
                         showRepairConfirmation=true
