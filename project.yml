@@ -37,8 +37,23 @@ targets:
         embed: true
       - target: BaraPauseShield
         embed: true
+      - target: BaraPauseShieldAction
+        embed: true
       - target: BaraPauseShare
         embed: true
+  BaraPauseShieldAction:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: ShieldAction
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: de.claua.barapause.shieldaction
+        CODE_SIGN_ENTITLEMENTS: Config/ShieldAction.entitlements
+        INFOPLIST_FILE: Config/ShieldAction-Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
   BaraPauseShare:
     type: app-extension
     platform: iOS
