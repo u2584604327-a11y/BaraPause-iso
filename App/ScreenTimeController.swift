@@ -1,5 +1,4 @@
 import Foundation
-import SwiftUI
 import FamilyControls
 import DeviceActivity
 import ManagedSettings
@@ -7,93 +6,83 @@ import ManagedSettings
 @MainActor
 final class ScreenTimeController: ObservableObject {
     @Published var selection = FamilyActivitySelection()
-    @Published var dailyMinutes = BaraStore.dailyLimitMinutes
-    @Published var monitoring = false
-    @Published var statusMessage = ""
     @Published var authorized = false
+    @Published var errorMessage: String?
+    @Published var monitoring = false
+    @Published var limitMinutes = 20
 
     private let center = DeviceActivityCenter()
-    private let activity = DeviceActivityName("barapause.daily")
-    private let event = DeviceActivityEvent.Name("barapause.limit")
-    private let shield = ManagedSettingsStore(named: ManagedSettingsStore.Name("barapause"))
+    private let activity = DeviceActivityName(SharedConfig.activityName)
+    private let eventName = DeviceActivityEvent.Name(SharedConfig.thresholdName)
 
     init() {
-        if let data = BaraStore.selectionData,
-           let decoded = try? PropertyListDecoder().decode(FamilyActivitySelection.self, from: data) {
+        authorized = AuthorizationCenter.shared.authorizationStatus == .approved
+        limitMinutes = max(1, SharedConfig.defaults.integer(forKey: SharedConfig.limitKey))
+        if let data = SharedConfig.defaults.data(forKey: SharedConfig.selectionKey),
+           let decoded = try? JSONDecoder().decode(FamilyActivitySelection.self, from: data) {
             selection = decoded
         }
-        authorized = AuthorizationCenter.shared.authorizationStatus == .approved
-        monitoring = UserDefaults.standard.bool(forKey: "screenTimeRunning")
+        monitoring = SharedConfig.defaults.bool(forKey: "monitorEnabled")
     }
 
-    var selectedCount: Int {
-        selection.applicationTokens.count + selection.categoryTokens.count + selection.webDomainTokens.count
-    }
-
-    func saveSelection() {
-        BaraStore.selectionData = try? PropertyListEncoder().encode(selection)
-    }
-
-    func requestAuthorization() async {
+    func requestAccess() async {
         do {
             try await AuthorizationCenter.shared.requestAuthorization(for: .individual)
             authorized = AuthorizationCenter.shared.authorizationStatus == .approved
-            statusMessage = authorized ? "Screen Time authorized" : "Authorization was not granted"
+            if !authorized { errorMessage = "Screen Time access not granted." }
         } catch {
             authorized = false
-            statusMessage = "Authorization failed: \(error.localizedDescription)"
+            errorMessage = error.localizedDescription
         }
     }
 
-    func start() {
-        authorized = AuthorizationCenter.shared.authorizationStatus == .approved
-        guard authorized else {
-            statusMessage = "Authorize Screen Time first."
+    func enableDailyLimit() {
+        errorMessage = nil
+        guard AuthorizationCenter.shared.authorizationStatus == .approved else {
+            errorMessage = "Authorize Screen Time first."
             return
         }
-        guard selectedCount > 0 else {
-            statusMessage = "Choose one or more apps, categories or websites."
+        guard !selection.applicationTokens.isEmpty ||
+              !selection.categoryTokens.isEmpty ||
+              !selection.webDomainTokens.isEmpty else {
+            errorMessage = "Choose at least one app, category or website."
             return
         }
-        saveSelection()
-        BaraStore.dailyLimitMinutes = dailyMinutes
-
-        // Inclusive enough for normal daily use; Apple's DeviceActivity owns enforcement timing.
-        let schedule = DeviceActivitySchedule(
-            intervalStart: DateComponents(hour: 0, minute: 0),
-            intervalEnd: DateComponents(hour: 23, minute: 59),
-            repeats: true
-        )
-        let limit = DeviceActivityEvent(
-            applications: selection.applicationTokens,
-            categories: selection.categoryTokens,
-            webDomains: selection.webDomainTokens,
-            threshold: DateComponents(minute: dailyMinutes),
-            includesPastActivity: true
-        )
+        let minutes = max(1, min(limitMinutes, 240))
         do {
+            let data = try JSONEncoder().encode(selection)
+            SharedConfig.defaults.set(data,forKey: SharedConfig.selectionKey)
+            SharedConfig.defaults.set(minutes,forKey: SharedConfig.limitKey)
+            SharedConfig.defaults.set(false,forKey: SharedConfig.limitReachedKey)
+            // Prevent stale shield from an earlier interval or set of selections.
+            ManagedSettingsStore().clearAllSettings()
             center.stopMonitoring([activity])
-            shield.shield.applications = nil
-            shield.shield.applicationCategories = nil
-            shield.shield.webDomains = nil
-            try center.startMonitoring(activity, during: schedule, events: [event: limit])
+            let schedule = DeviceActivitySchedule(
+                intervalStart: DateComponents(hour:0, minute:0),
+                intervalEnd: DateComponents(hour:23,minute:59),
+                repeats: true
+            )
+            let event = DeviceActivityEvent(
+                applications: selection.applicationTokens,
+                categories: selection.categoryTokens,
+                webDomains: selection.webDomainTokens,
+                threshold: DateComponents(minute: minutes)
+            )
+            try center.startMonitoring(activity,during:schedule,events:[eventName:event])
             monitoring = true
-            UserDefaults.standard.set(true, forKey: "screenTimeRunning")
-            statusMessage = "Monitoring request accepted. Check on a real iPhone."
+            SharedConfig.defaults.set(true,forKey:"monitorEnabled")
         } catch {
+            errorMessage = error.localizedDescription
             monitoring = false
-            UserDefaults.standard.set(false, forKey: "screenTimeRunning")
-            statusMessage = "Failed to start: \(error.localizedDescription)"
+            SharedConfig.defaults.set(false,forKey:"monitorEnabled")
         }
     }
 
-    func stop() {
+    func disableDailyLimit() {
         center.stopMonitoring([activity])
-        shield.shield.applications = nil
-        shield.shield.applicationCategories = nil
-        shield.shield.webDomains = nil
+        ManagedSettingsStore().clearAllSettings()
+        SharedConfig.defaults.set(false,forKey: SharedConfig.limitReachedKey)
+        SharedConfig.defaults.set(false,forKey:"monitorEnabled")
         monitoring = false
-        UserDefaults.standard.set(false, forKey: "screenTimeRunning")
-        statusMessage = "Monitoring stopped; shields cleared."
     }
 }
