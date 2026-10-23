@@ -64,9 +64,21 @@ struct SettingsView: View {
                     Task {
                         if let raw=try? await value?.loadTransferable(type:Data.self),
                            raw.count<8_000_000, let img=UIImage(data:raw) {
-                            await MainActor.run { preview=img }
+                            await MainActor.run {
+                                if ArtworkStore.save(img) {
+                                    preview=ArtworkStore.loadImage()
+                                    WidgetCenter.shared.reloadAllTimelines()
+                                } else {
+                                    message="无法保存所选图片，请检查大小或 App Group 配置。"
+                                }
+                            }
                         }
                     }
+                }
+                Button("恢复默认水豚",role:.destructive) {
+                    ArtworkStore.remove()
+                    preview=nil
+                    WidgetCenter.shared.reloadAllTimelines()
                 }
                 if let preview {
                     Image(uiImage:preview).resizable().scaledToFit()
@@ -75,7 +87,7 @@ struct SettingsView: View {
                 } else {
                     CapyMascot(animated:false).frame(height:150)
                 }
-                Text("预览图片仅在当前界面展示；iOS 系统限制页不会允许任意动态图覆盖。")
+                Text("所选图片会以压缩静态版保存在本机，用于系统 Shield 的图标；不能在其他 App 上显示连续动画。")
                     .font(.footnote).foregroundStyle(.secondary)
             }
             Section("本地设置备份") {
@@ -98,6 +110,7 @@ struct SettingsView: View {
                 Section { Text(message).foregroundStyle(.orange) }
             }
         }
+        .onAppear { preview=ArtworkStore.loadImage() }
         .fileExporter(isPresented:$showExport,document:exportDocument,
                       contentType:.json,defaultFilename:"BaraPause-settings") { outcome in
             if case .failure(let error)=outcome { message=error.localizedDescription }
