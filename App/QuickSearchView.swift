@@ -22,7 +22,7 @@ struct SearchProvider: Identifiable, Hashable {
 struct QuickSearchView: View {
     @AppStorage("language",store:SharedConfig.defaults) private var lang="system"
     @Environment(\.openURL) private var openURL
-    @State private var query=""
+    @AppStorage("quickDraftQuery",store:SharedConfig.defaults) private var query=""
     @State private var provider=SearchProvider.options[0]
     @State private var contentLink=""
     @State private var recent:[String]=[]
