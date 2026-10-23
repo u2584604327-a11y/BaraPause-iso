@@ -35,8 +35,8 @@ struct BaraWidgetView: View {
                     Image(uiImage:custom).resizable().scaledToFit()
                         .frame(width:32,height:32).clipShape(RoundedRectangle(cornerRadius:8))
                 } else {
-                    Image("Capybara").resizable().scaledToFit()
-                        .frame(width:32,height:32)
+                    CapyMascot(animated:false)
+                        .scaleEffect(0.18).frame(width:32,height:32)
                 }
                 Text("BaraPause").font(.headline)
                 Spacer()
