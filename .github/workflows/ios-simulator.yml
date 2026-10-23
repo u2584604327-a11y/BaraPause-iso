@@ -21,6 +21,17 @@ jobs:
           . .venv/bin/activate
           pip install cairosvg
           python3 Scripts/build_icons.py
+      - name: Verify plist, entitlement, and image assets
+        run: |
+          .venv/bin/python Scripts/static_audit.py
+      - name: Parse all Swift sources (syntax gate)
+        run: |
+          set -euo pipefail
+          find App Shared Widget Monitor Shield -name '*.swift' -print0 |
+            while IFS= read -r -d '' f; do
+              echo "Parsing $f"
+              xcrun swiftc -frontend -parse "$f"
+            done
       - name: Generate Xcode project
         run: xcodegen generate --spec project.yml
       - name: Build for iOS Simulator (no signing, no IPA)
