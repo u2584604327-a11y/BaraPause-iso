@@ -23,13 +23,15 @@ struct FocusView: View {
                             .monospacedDigit()
                     }
                 }
-                Picker(tr("minutes"),selection:$selectedMinutes) {
+                HStack(spacing:8) {
                     ForEach([25,50,90],id:\.self) { value in
-                        Text("\(value) \(tr("minutes"))").tag(value)
+                        Button("\(value) \(tr("minutes"))") { selectedMinutes=value }
+                            .buttonStyle(.bordered)
+                            .tint(selectedMinutes==value ? .green : .secondary)
                     }
                 }
-                .pickerStyle(.segmented)
-                Stepper("\(selectedMinutes) \(tr("minutes"))",value:$selectedMinutes,in:5...180,step:5)
+                Stepper("\(selectedMinutes) \(tr("minutes"))",
+                        value:$selectedMinutes,in:5...180,step:5)
                 Button {
                     SharedConfig.startFocus(minutes: selectedMinutes)
                     focusEnd=SharedConfig.defaults.double(forKey: SharedConfig.focusEndKey)
