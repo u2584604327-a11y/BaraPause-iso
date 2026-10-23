@@ -52,7 +52,7 @@ final class ShareReceiverController: UIViewController {
             ? UTType.url.identifier : UTType.plainText.identifier
         provider.loadItem(forTypeIdentifier:type,options:nil) { [weak self] item,_ in
             let raw=(item as? URL)?.absoluteString ??
-                (item as? NSString).map(String.init) ?? ""
+                (item as? String) ?? (item as? NSString)?.description ?? ""
             DispatchQueue.main.async {
                 guard let self=self else { return }
                 guard let link=Self.extractHTTPS(raw) else {

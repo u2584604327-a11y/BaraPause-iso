@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 import FamilyControls
 import DeviceActivity
 import ManagedSettings
@@ -19,10 +20,15 @@ final class ScreenTimeController: ObservableObject {
         authorized = AuthorizationCenter.shared.authorizationStatus == .approved
         let stored = SharedConfig.defaults.integer(forKey: SharedConfig.limitKey)
         limitMinutes = stored > 0 ? min(stored,240) : 20
-        if let data = SharedConfig.defaults.data(forKey: SharedConfig.selectionKey),
-           let decoded = try? JSONDecoder().decode(FamilyActivitySelection.self, from: data) {
+        if let active=ProfileLibrary.current().selectionData,
+           let decoded=try? JSONDecoder().decode(FamilyActivitySelection.self,from:active) {
             selection = decoded
+        } else if let data=SharedConfig.defaults.data(forKey:SharedConfig.selectionKey),
+                  let decoded=try? JSONDecoder().decode(FamilyActivitySelection.self,from:data) {
+            selection=decoded
         }
+        let activeProfile=ProfileLibrary.current()
+        limitMinutes=max(1,min(240,activeProfile.dailyMinutes))
         refreshStatus()
     }
 

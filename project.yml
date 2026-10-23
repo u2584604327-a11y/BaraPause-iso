@@ -44,7 +44,7 @@ targets:
     platform: iOS
     sources:
       - path: Share
-      - path: Shared
+      - path: Shared/SharedConfig.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: de.claua.barapause.share
@@ -58,7 +58,9 @@ targets:
     platform: iOS
     sources:
       - path: Widget
-      - path: Shared
+      - path: Shared/SharedConfig.swift
+      - path: Shared/CapyMascot.swift
+      - path: Shared/ArtworkStore.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: de.claua.barapause.widget
@@ -72,7 +74,7 @@ targets:
     platform: iOS
     sources:
       - path: Monitor
-      - path: Shared
+      - path: Shared/SharedConfig.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: de.claua.barapause.monitor
@@ -86,7 +88,9 @@ targets:
     platform: iOS
     sources:
       - path: Shield
-      - path: Shared
+      - path: Shared/SharedConfig.swift
+      - path: Shared/ArtworkStore.swift
+      - path: Shared/Localization.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: de.claua.barapause.shield

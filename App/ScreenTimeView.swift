@@ -72,5 +72,9 @@ struct ScreenTimeView: View {
         }
         .familyActivityPicker(isPresented:$showPicker,selection:$controller.selection)
         .onAppear { controller.refreshStatus() }
+        .onChange(of:showPicker) { _,isPresented in
+            if !isPresented { _ = controller.storeActiveProfile() }
+        }
+        .onDisappear { _ = controller.storeActiveProfile() }
     }
 }
