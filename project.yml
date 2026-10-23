@@ -37,6 +37,22 @@ targets:
         embed: true
       - target: BaraPauseShield
         embed: true
+      - target: BaraPauseShare
+        embed: true
+  BaraPauseShare:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Share
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: de.claua.barapause.share
+        CODE_SIGN_ENTITLEMENTS: Config/Share.entitlements
+        INFOPLIST_FILE: Config/Share-Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
   BaraPauseWidget:
     type: app-extension
     platform: iOS
