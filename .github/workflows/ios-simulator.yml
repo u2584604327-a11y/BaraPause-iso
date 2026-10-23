@@ -1,7 +1,5 @@
 name: iOS simulator validation
 on:
-  push:
-    branches: [ feature/ios-v1_1-profiles-continuity ]
   workflow_dispatch:
 permissions:
   contents: read
