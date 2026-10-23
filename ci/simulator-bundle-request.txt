@@ -1,0 +1,1 @@
+One-time iOS Simulator build artifact for V1.2, source XcodeGen + app + four extensions. No iPhone IPA or signing included.
