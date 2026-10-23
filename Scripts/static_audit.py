@@ -1,74 +1,79 @@
 #!/usr/bin/env python3
-"""Offline architecture and asset checks; not a substitute for xcodebuild/device testing."""
+"""Static preflight (not an iPhone or Xcode build verification)."""
 import plistlib
 import struct
+import re
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
-ROOT = Path(__file__).resolve().parent.parent
-NEEDED = [
-    "project.yml", "App/BaraPauseApp.swift", "App/HomeView.swift",
-    "App/ScreenTimeController.swift", "App/FocusTimerView.swift",
-    "App/QuickSearchView.swift", "App/PreferencesView.swift",
-    "Shared/BaraStore.swift", "Widget/BaraPauseWidget.swift",
-    "Monitor/ActivityMonitorExtension.swift", "Shield/BaraShieldDataSource.swift",
-    "Design/capybara.svg", "Scripts/build_icons.py",
-    "Config/BaraPause-Info.plist",
-    "Config/BaraPause.entitlements", "Config/Widget.entitlements",
-    "Config/Monitor.entitlements", "Config/Shield.entitlements",
+root=Path(__file__).resolve().parent.parent
+source_paths=[
+    "App/BaraPauseApp.swift","App/RootView.swift","App/CapyMascot.swift",
+    "App/FocusView.swift","App/ScreenTimeController.swift","App/ScreenTimeView.swift",
+    "App/QuickSearchView.swift","App/SettingsView.swift",
+    "Shared/SharedConfig.swift","Shared/Localization.swift",
+    "Monitor/ActivityMonitorExtension.swift","Shield/BaraShieldDataSource.swift",
+    "Widget/BaraWidget.swift",
+]
+required=source_paths+[
+    "project.yml",".github/workflows/ios-simulator.yml",
+    "Design/capybara.svg","Scripts/build_icons.py",
+    "Config/BaraPause-Info.plist","Config/BaraPause.entitlements",
+    "Config/Widget.entitlements","Config/Monitor.entitlements",
+    "Config/Shield.entitlements","Config/Widget-Info.plist",
+    "Config/Monitor-Info.plist","Config/Shield-Info.plist",
     "Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png",
     "Resources/Assets.xcassets/Capybara.imageset/Capybara-1024.png",
-    "Design/BaraPause-4096.png",
+    "Design/BaraPause-4096.png"
 ]
-for name in NEEDED:
-    assert (ROOT / name).is_file(), "Missing " + name
-    print("FILE_OK", name)
+for path in required:
+    assert (root/path).is_file(),f"Missing: {path}"
 
-def plist(name):
-    with (ROOT / name).open("rb") as f:
+def plist(path):
+    with (root/path).open("rb") as f:
         return plistlib.load(f)
 
-app_info = plist("Config/BaraPause-Info.plist")
-assert any("barapause" in t.get("CFBundleURLSchemes", [])
-           for t in app_info.get("CFBundleURLTypes", []))
-assert "group.de.claua.barapause" in plist("Config/BaraPause.entitlements")[
-    "com.apple.security.application-groups"]
-for name in ("Config/BaraPause.entitlements", "Config/Monitor.entitlements",
-             "Config/Shield.entitlements"):
-    assert plist(name).get("com.apple.developer.family-controls") is True
+assert any("barapause" in t.get("CFBundleURLSchemes",[])
+           for t in plist("Config/BaraPause-Info.plist").get("CFBundleURLTypes",[]))
+for name in ["BaraPause","Monitor","Shield"]:
+    p=plist(f"Config/{name}.entitlements")
+    assert p.get("com.apple.developer.family-controls") is True, name
+for name in ["BaraPause","Widget","Monitor","Shield"]:
+    p=plist(f"Config/{name}.entitlements")
+    assert "group.de.claua.barapause" in p.get("com.apple.security.application-groups",[]), name
+
 for name,point in [
-    ("Config/Widget-Info.plist", "com.apple.widgetkit-extension"),
-    ("Config/Monitor-Info.plist", "com.apple.deviceactivity.monitor-extension"),
-    ("Config/Shield-Info.plist", "com.apple.ManagedSettingsUI.shield-configuration-service"),
+    ("Widget-Info.plist","com.apple.widgetkit-extension"),
+    ("Monitor-Info.plist","com.apple.deviceactivity.monitor-extension"),
+    ("Shield-Info.plist","com.apple.ManagedSettingsUI.shield-configuration-service")
 ]:
-    assert plist(name)["NSExtension"]["NSExtensionPointIdentifier"] == point
-    print("EXTENSION_OK", name)
+    assert plist(f"Config/{name}")["NSExtension"]["NSExtensionPointIdentifier"]==point
 
-ET.parse(ROOT / "Design/capybara.svg")
-def size(path):
-    raw = path.read_bytes()[:24]
-    assert raw[:8] == b"\x89PNG\r\n\x1a\n", "Invalid PNG header: " + str(path)
-    return struct.unpack(">II", raw[16:24])
-for name, expected in [
-    ("Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png", (1024,1024)),
-    ("Resources/Assets.xcassets/Capybara.imageset/Capybara-1024.png", (1024,1024)),
-    ("Design/BaraPause-4096.png", (4096,4096)),
+ET.parse(root/"Design/capybara.svg")
+for path,expected in [
+    ("Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png",(1024,1024)),
+    ("Resources/Assets.xcassets/Capybara.imageset/Capybara-1024.png",(1024,1024)),
+    ("Design/BaraPause-4096.png",(4096,4096))
 ]:
-    got = size(ROOT / name)
-    assert got == expected, f"{name}: expected {expected}, got {got}"
-    print("PNG_OK", name, got)
+    b=(root/path).read_bytes()
+    assert b[:8]==b"\\x89PNG\\r\\n\\x1a\\n"
+    assert struct.unpack(">II",b[16:24])==expected, path
 
-swift_files = list(ROOT.glob("App/*.swift")) + list(ROOT.glob("Shared/*.swift"))
-swift_files += list(ROOT.glob("Widget/*.swift")) + list(ROOT.glob("Monitor/*.swift"))
-swift_files += list(ROOT.glob("Shield/*.swift"))
-assert len(swift_files) >= 9
-for path in swift_files:
-    content = path.read_text(encoding="utf-8")
-    assert content.strip() and "import " in content, "Empty Swift file: " + str(path)
-assert "requestAuthorization(for: .individual)" in (
-    ROOT / "App/ScreenTimeController.swift").read_text()
-assert "eventDidReachThreshold" in (
-    ROOT / "Monitor/ActivityMonitorExtension.swift").read_text()
-assert "ShieldConfiguration(" in (
-    ROOT / "Shield/BaraShieldDataSource.swift").read_text()
-print(f"STATIC_AUDIT_PASS: {len(swift_files)} Swift source files, 4K asset, 3 extensions")
+swift_files=list(root.glob("App/*.swift"))+list(root.glob("Shared/*.swift"))
+swift_files+=list(root.glob("Widget/*.swift"))+list(root.glob("Monitor/*.swift"))
+swift_files+=list(root.glob("Shield/*.swift"))
+names={}
+for file in swift_files:
+    content=file.read_text(encoding="utf-8")
+    assert content.strip().startswith(("import ","//")),file
+    for name in re.findall(r"(?m)^\\s*(?:(?:@MainActor|final|private|public|internal)\\s+)*(?:struct|class|enum)\\s+(\\w+)",content):
+        assert name not in names,f"Duplicate Swift type {name}: {names.get(name)} and {file}"
+        names[name]=str(file.relative_to(root))
+screen=(root/"App/ScreenTimeController.swift").read_text(encoding="utf-8")
+assert "requestAuthorization(for: .individual)" in screen
+assert "startMonitoring(" in screen
+assert "eventDidReachThreshold" in (root/"Monitor/ActivityMonitorExtension.swift").read_text(encoding="utf-8")
+assert "ShieldConfiguration(" in (root/"Shield/BaraShieldDataSource.swift").read_text(encoding="utf-8")
+assert "@main" in (root/"Widget/BaraWidget.swift").read_text(encoding="utf-8")
+assert "@main" in (root/"App/BaraPauseApp.swift").read_text(encoding="utf-8")
+print("STATIC_AUDIT_PASS",len(swift_files),"Swift files, 4K vector master, 3 extensions, no duplicate public types")
