@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 import FamilyControls
 import DeviceActivity
 import ManagedSettings
@@ -10,6 +11,7 @@ final class ScreenTimeController: ObservableObject {
     @Published var errorMessage: String?
     @Published var monitoring = false
     @Published var recoveryNeeded = false
+    @Published var pendingLimitChange = false
     @Published var systemStatus = "尚未检查"
     @Published var lastEvent = "暂无系统回调"
     @Published var lastEventDate: Date?
@@ -39,6 +41,7 @@ final class ScreenTimeController: ObservableObject {
         }
         let state=SharedConfig.defaults
         let requested=state.bool(forKey:SharedConfig.monitorEnabledKey)
+        pendingLimitChange = requested && state.integer(forKey:SharedConfig.appliedLimitKey) != state.integer(forKey:SharedConfig.limitKey)
         let active=SharedConfig.activeActivityName
         let registered = !active.isEmpty && center.activities.contains {
             $0.rawValue == active
@@ -129,7 +132,8 @@ final class ScreenTimeController: ObservableObject {
             if !old.isEmpty { center.stopMonitoring(old) }
             ManagedSettingsStore().clearAllSettings()
 
-            // Daily limit includes activity already accumulated today, even after relaunch/re-register.\n            // 2. Prepare a unique activity ID and mapping for the new registration.
+            // The daily event includes activity from earlier in this interval.
+            // 2. Prepare the next activity ID and token mapping.
             //    The system may invoke callbacks synchronously during startMonitoring().
             shared.set(selectionData,forKey:SharedConfig.selectionKey)
             shared.set(appsData,forKey:"eventAppTokens")
@@ -146,6 +150,7 @@ final class ScreenTimeController: ObservableObject {
             let activity=DeviceActivityName(nextName)
             do {
                 try center.startMonitoring(activity,during:schedule,events:events)
+                shared.set(minutes,forKey:SharedConfig.appliedLimitKey)
                 SharedConfig.recordMonitorEvent("登记成功：每日独立阈值监控")
             } catch {
                 shared.set(false,forKey:SharedConfig.monitorEnabledKey)
