@@ -3,8 +3,7 @@ import SwiftUI
 struct RootView: View {
     @AppStorage("language",store: SharedConfig.defaults) private var lang = "system"
     @AppStorage("theme",store: SharedConfig.defaults) private var theme = "system"
-    @State private var tab = 0
-    @State private var route: String?
+    @AppStorage("lastSelectedTab",store:SharedConfig.defaults) private var tab = 0
 
     private func tr(_ key:String)->String { TextKey.label(key,lang: lang) }
     private var background: Color {
