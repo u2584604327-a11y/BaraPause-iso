@@ -2,8 +2,16 @@ import Foundation
 
 enum SharedConfig {
     static let groupID = "group.de.claua.barapause"
+    static var groupDefaults: UserDefaults? {
+        UserDefaults(suiteName: groupID)
+    }
+    static var appGroupAvailable: Bool {
+        groupDefaults != nil
+    }
+    // The standard store is used only for basic UI previews. Screen Time
+    // monitoring must explicitly reject unavailable App Group access.
     static var defaults: UserDefaults {
-        UserDefaults(suiteName: groupID) ?? .standard
+        groupDefaults ?? .standard
     }
     static let activityName = "barapause.daily"
     static let thresholdName = "barapause.threshold"
