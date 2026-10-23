@@ -31,7 +31,13 @@ struct BaraWidgetView: View {
     var body: some View {
         VStack(alignment:.leading,spacing:8) {
             HStack {
-                Image(systemName:"leaf.circle.fill").font(.title2).foregroundStyle(.green)
+                if let custom=ArtworkStore.loadImage() {
+                    Image(uiImage:custom).resizable().scaledToFit()
+                        .frame(width:32,height:32).clipShape(RoundedRectangle(cornerRadius:8))
+                } else {
+                    Image("Capybara").resizable().scaledToFit()
+                        .frame(width:32,height:32)
+                }
                 Text("BaraPause").font(.headline)
                 Spacer()
             }
