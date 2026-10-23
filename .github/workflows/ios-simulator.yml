@@ -13,11 +13,13 @@ jobs:
         run: |
           xcodebuild -version
           swift --version
-      - name: Install XcodeGen
-        run: brew install xcodegen
+      - name: Install XcodeGen and SVG dependencies
+        run: brew install xcodegen cairo
       - name: Generate vector-based icon assets
         run: |
-          python3 -m pip install --break-system-packages cairosvg
+          python3 -m venv .venv
+          . .venv/bin/activate
+          pip install cairosvg
           python3 Scripts/build_icons.py
       - name: Generate Xcode project
         run: xcodegen generate --spec project.yml
