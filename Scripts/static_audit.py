@@ -8,10 +8,10 @@ from xml.etree import ElementTree as ET
 
 root=Path(__file__).resolve().parent.parent
 source_paths=[
-    "App/BaraPauseApp.swift","App/RootView.swift","App/CapyMascot.swift",
+    "App/BaraPauseApp.swift","App/RootView.swift","Shared/CapyMascot.swift",
     "App/FocusView.swift","App/ScreenTimeController.swift","App/ScreenTimeView.swift",
-    "App/QuickSearchView.swift","App/SettingsView.swift",
-    "Shared/SharedConfig.swift","Shared/Localization.swift",
+    "App/QuickSearchView.swift","App/SettingsView.swift","App/ProfilesView.swift",
+    "Shared/SharedConfig.swift","Shared/Localization.swift","Shared/ProfileLibrary.swift","Shared/ArtworkStore.swift",
     "Monitor/ActivityMonitorExtension.swift","Shield/BaraShieldDataSource.swift",
     "Widget/BaraWidget.swift", "Share/ShareReceiverController.swift",
 ]
