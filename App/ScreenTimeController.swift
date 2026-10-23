@@ -9,6 +9,7 @@ final class ScreenTimeController: ObservableObject {
     @Published var authorized = false
     @Published var errorMessage: String?
     @Published var monitoring = false
+    @Published var needsRecovery = false
     @Published var limitMinutes = 20
 
     private let center = DeviceActivityCenter()
@@ -22,7 +23,57 @@ final class ScreenTimeController: ObservableObject {
            let decoded = try? JSONDecoder().decode(FamilyActivitySelection.self, from: data) {
             selection = decoded
         }
-        monitoring = SharedConfig.defaults.bool(forKey: "monitorEnabled")
+        refreshStatus()
+    }
+
+    func refreshStatus() {
+        authorized = AuthorizationCenter.shared.authorizationStatus == .approved
+        let scheduled = center.activities.contains(activity)
+        monitoring = authorized && scheduled
+        needsRecovery = SharedConfig.defaults.bool(forKey:"monitorEnabled") && !scheduled
+    }
+
+    func restoreMonitoringIfRequested() {
+        guard needsRecovery else { return }
+        // User action only. No silent recovery when authorization was revoked.
+        enableDailyLimit()
+    }
+
+    func storeActiveProfile() -> Bool {
+        ProfileLibrary.saveCurrent(selection:selection,minutes:limitMinutes)
+    }
+
+    func switchProfile(to id:UUID) {
+        errorMessage=nil
+        guard let next=ProfileLibrary.named(id),id != ProfileLibrary.activeID() else {return}
+        guard storeActiveProfile() else {
+            errorMessage="无法保存当前存档，切换已取消。"
+            return
+        }
+        let wasRunning=monitoring
+        if wasRunning { disableDailyLimit() }
+        let old=ProfileLibrary.current()
+        selection=ProfileLibrary.decodedSelection(next)
+        limitMinutes=next.dailyMinutes
+        guard ProfileLibrary.activate(id) else {
+            selection=ProfileLibrary.decodedSelection(old)
+            limitMinutes=old.dailyMinutes
+            if wasRunning { enableDailyLimit() }
+            errorMessage="无法切换存档，已恢复旧规则。"
+            return
+        }
+        SharedConfig.defaults.set(next.selectionData,forKey:SharedConfig.selectionKey)
+        SharedConfig.defaults.set(next.dailyMinutes,forKey:SharedConfig.limitKey)
+        if wasRunning && (!selection.applicationTokens.isEmpty ||
+                !selection.categoryTokens.isEmpty || !selection.webDomainTokens.isEmpty) {
+            enableDailyLimit()
+            if !monitoring {
+                errorMessage="新存档已切换，但系统监控未启动，请检查授权和规则。"
+                needsRecovery=true
+            }
+        } else if wasRunning {
+            errorMessage="已切换到无受限 App 的存档，系统监控已停止。"
+        }
     }
 
     func requestAccess() async {
@@ -30,6 +81,7 @@ final class ScreenTimeController: ObservableObject {
             try await AuthorizationCenter.shared.requestAuthorization(for: .individual)
             authorized = AuthorizationCenter.shared.authorizationStatus == .approved
             if !authorized { errorMessage = "Screen Time access not granted." }
+            refreshStatus()
         } catch {
             authorized = false
             errorMessage = error.localizedDescription
@@ -95,11 +147,14 @@ final class ScreenTimeController: ObservableObject {
             ManagedSettingsStore().clearAllSettings()
             try center.startMonitoring(activity,during:schedule,events:events)
             monitoring = true
+            needsRecovery=false
             SharedConfig.defaults.set(true,forKey:"monitorEnabled")
+            _ = storeActiveProfile()
         } catch {
             errorMessage = error.localizedDescription
             monitoring = false
             SharedConfig.defaults.set(false,forKey:"monitorEnabled")
+            needsRecovery=true
         }
     }
 
@@ -109,5 +164,6 @@ final class ScreenTimeController: ObservableObject {
         SharedConfig.defaults.set(false,forKey: SharedConfig.limitReachedKey)
         SharedConfig.defaults.set(false,forKey:"monitorEnabled")
         monitoring = false
+        needsRecovery=false
     }
 }
