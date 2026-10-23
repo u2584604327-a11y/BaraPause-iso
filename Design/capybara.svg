@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4096" height="4096" viewBox="0 0 160 160">
+<rect width="160" height="160" rx="35" fill="#FFF2DD"/>
+<ellipse cx="83" cy="141" rx="55" ry="9" fill="#E8D7B9"/>
+<path d="M80 38 L81 18" fill="none" stroke="#486E3D" stroke-width="5" stroke-linecap="round"/>
+<path d="M79 23 C64 26 55 17 58 9 C70 7 79 14 79 23Z" fill="#92B97C" stroke="#486E3D" stroke-width="3"/>
+<path d="M82 23 C84 12 96 7 103 12 C103 21 93 27 82 23Z" fill="#92B97C" stroke="#486E3D" stroke-width="3"/>
+<circle cx="46" cy="54" r="15" fill="#AD7453" stroke="#59392C" stroke-width="4"/>
+<circle cx="46" cy="54" r="8" fill="#CF9875"/>
+<circle cx="115" cy="54" r="15" fill="#AD7453" stroke="#59392C" stroke-width="4"/>
+<circle cx="115" cy="54" r="8" fill="#CF9875"/>
+<path d="M30 113 C23 89 30 52 59 41 C78 34 99 38 114 46 C134 59 141 81 139 111 C140 134 127 144 108 145 L50 145 C33 140 27 131 30 113Z" fill="#EBAF7B" stroke="#654331" stroke-width="5"/>
+<ellipse cx="48" cy="95" rx="9" ry="7" fill="#EA9985" opacity=".56"/>
+<ellipse cx="124" cy="95" rx="9" ry="7" fill="#EA9985" opacity=".56"/>
+<path d="M56 86 Q61 81 67 85" fill="none" stroke="#513429" stroke-width="4" stroke-linecap="round"/>
+<circle cx="114" cy="82" r="4" fill="#513429"/>
+<path d="M99 89 C99 70 123 69 130 82 C138 100 125 109 111 107 C103 105 100 98 99 89Z" fill="#C58A69"/>
+<path d="M111 89 Q119 93 125 85 M119 90 Q119 101 116 102" fill="none" stroke="#5B382B" stroke-width="4" stroke-linecap="round"/>
+<rect x="63" y="101" width="72" height="50" rx="19" fill="#486A43"/>
+<rect x="67" y="105" width="64" height="42" rx="16" fill="#88AF76"/>
+<rect x="89" y="116" width="10" height="23" rx="4" fill="#FFF8E8"/>
+<rect x="106" y="116" width="10" height="23" rx="4" fill="#FFF8E8"/>
+<path d="M52 122 Q68 113 78 128" fill="none" stroke="#80523B" stroke-width="10" stroke-linecap="round"/>
+<path d="M135 123 Q145 122 143 134" fill="none" stroke="#80523B" stroke-width="9" stroke-linecap="round"/>
+<path d="M24 145 Q38 131 51 147 Q60 136 73 148 Q95 136 108 148 Q131 136 143 145" fill="none" stroke="#77A06B" stroke-width="5" stroke-linecap="round"/>
+</svg>
