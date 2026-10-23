@@ -2,26 +2,41 @@ import Foundation
 
 enum SharedConfig {
     static let groupID = "group.de.claua.barapause"
-    static var groupDefaults: UserDefaults? {
-        UserDefaults(suiteName: groupID)
-    }
-    static var appGroupAvailable: Bool {
-        groupDefaults != nil
-    }
-    // The standard store is used only for basic UI previews. Screen Time
-    // monitoring must explicitly reject unavailable App Group access.
-    static var defaults: UserDefaults {
-        groupDefaults ?? .standard
-    }
-    static let activityName = "barapause.daily"
-    static let thresholdName = "barapause.threshold"
+    static var groupDefaults: UserDefaults? { UserDefaults(suiteName: groupID) }
+    static var appGroupAvailable: Bool { groupDefaults != nil }
+
+    // Local preview features may use standard defaults; Screen Time never may.
+    static var defaults: UserDefaults { groupDefaults ?? .standard }
+
+    static let legacyActivityName = "barapause.daily"
+    static let activityPrefix = "barapause.daily."
     static let selectionKey = "screenTimeSelection"
     static let limitKey = "dailyLimitMinutes"
     static let focusEndKey = "focusEnd"
-    static let widgetTargetKey = "favoriteTarget"
     static let limitReachedKey = "limitReached"
     static let searchHistoryKey = "searchHistory"
+    static let activeActivityKey = "activeActivityName"
+    static let monitorEnabledKey = "monitorEnabled"
+    static let generationKey = "monitorGeneration"
+    static let lastEventKey = "lastMonitorEvent"
+    static let lastEventAtKey = "lastMonitorEventAt"
 
+    static var activeActivityName: String {
+        defaults.string(forKey: activeActivityKey) ?? ""
+    }
+    static func ownsActivity(_ raw: String) -> Bool {
+        raw == legacyActivityName || raw.hasPrefix(activityPrefix)
+    }
+    static func isActiveActivity(_ raw: String) -> Bool {
+        defaults.bool(forKey: monitorEnabledKey) &&
+        !activeActivityName.isEmpty &&
+        raw == activeActivityName
+    }
+    static func recordMonitorEvent(_ value: String, at date: Date = Date()) {
+        guard let shared=groupDefaults else { return }
+        shared.set(String(value.prefix(120)), forKey: lastEventKey)
+        shared.set(date.timeIntervalSince1970, forKey: lastEventAtKey)
+    }
     static func focusRemaining(at date: Date = Date()) -> TimeInterval {
         max(0, defaults.double(forKey: focusEndKey) - date.timeIntervalSince1970)
     }
