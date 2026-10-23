@@ -76,6 +76,12 @@ struct QuickSearchView: View {
         }
         .onAppear {
             recent=SharedConfig.defaults.stringArray(forKey:SharedConfig.searchHistoryKey) ?? []
+            if let incoming=SharedConfig.defaults.string(forKey:"sharedIncomingLink"),!incoming.isEmpty {
+                contentLink=incoming
+                SharedConfig.defaults.removeObject(forKey:"sharedIncomingLink")
+                // Deliberately require user confirmation before opening.
+                confirmLink=false
+            }
         }
         .confirmationDialog("打开外部链接？",isPresented:$confirmLink) {
             if let url=checkedURL {
