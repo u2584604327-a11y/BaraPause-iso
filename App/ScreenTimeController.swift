@@ -108,15 +108,15 @@ final class ScreenTimeController: ObservableObject {
             var events:[DeviceActivityEvent.Name:DeviceActivityEvent]=[:]
             for (i,token) in apps.enumerated() {
                 events[DeviceActivityEvent.Name("app.\(i)")] =
-                    DeviceActivityEvent(applications:[token],threshold:threshold)
+                    DeviceActivityEvent(applications:[token],threshold:threshold,includesPastActivity:true)
             }
             for (i,token) in categories.enumerated() {
                 events[DeviceActivityEvent.Name("category.\(i)")] =
-                    DeviceActivityEvent(categories:[token],threshold:threshold)
+                    DeviceActivityEvent(categories:[token],threshold:threshold,includesPastActivity:true)
             }
             for (i,token) in websites.enumerated() {
                 events[DeviceActivityEvent.Name("web.\(i)")] =
-                    DeviceActivityEvent(webDomains:[token],threshold:threshold)
+                    DeviceActivityEvent(webDomains:[token],threshold:threshold,includesPastActivity:true)
             }
             let schedule=DeviceActivitySchedule(
                 intervalStart:DateComponents(hour:0,minute:0),
@@ -129,7 +129,7 @@ final class ScreenTimeController: ObservableObject {
             if !old.isEmpty { center.stopMonitoring(old) }
             ManagedSettingsStore().clearAllSettings()
 
-            // 2. Prepare a unique activity ID and mapping for the new registration.
+            // Daily limit includes activity already accumulated today, even after relaunch/re-register.\n            // 2. Prepare a unique activity ID and mapping for the new registration.
             //    The system may invoke callbacks synchronously during startMonitoring().
             shared.set(selectionData,forKey:SharedConfig.selectionKey)
             shared.set(appsData,forKey:"eventAppTokens")
