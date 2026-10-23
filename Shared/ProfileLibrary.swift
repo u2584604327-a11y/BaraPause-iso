@@ -7,6 +7,9 @@ struct BaraPreset: Codable, Identifiable {
     var name: String
     var dailyMinutes: Int
     var selectionData: Data?
+    // Optional for forwards-compatible migration of earlier locally saved profiles.
+    var language: String? = nil
+    var theme: String? = nil
 }
 
 enum ProfileLibrary {
@@ -24,7 +27,9 @@ enum ProfileLibrary {
             id:UUID(),name:"默认",
             dailyMinutes:max(1,min(240,SharedConfig.defaults.integer(forKey:SharedConfig.limitKey)==0
                 ? 20 : SharedConfig.defaults.integer(forKey:SharedConfig.limitKey))),
-            selectionData:SharedConfig.defaults.data(forKey:SharedConfig.selectionKey))
+            selectionData:SharedConfig.defaults.data(forKey:SharedConfig.selectionKey),
+            language:SharedConfig.defaults.string(forKey:"language") ?? "system",
+            theme:SharedConfig.defaults.string(forKey:"theme") ?? "system")
         persist([original],active:original.id)
         return [original]
     }
@@ -59,6 +64,8 @@ enum ProfileLibrary {
               let data=try? JSONEncoder().encode(selection) else { return false }
         items[index].selectionData=data
         items[index].dailyMinutes=max(1,min(240,minutes))
+        items[index].language=SharedConfig.defaults.string(forKey:"language") ?? "system"
+        items[index].theme=SharedConfig.defaults.string(forKey:"theme") ?? "system"
         return persist(items,active:items[index].id)
     }
 
@@ -69,7 +76,8 @@ enum ProfileLibrary {
         let old=current()
         let record=BaraPreset(id:UUID(),name:trimmed,
                               dailyMinutes:duplicate ? old.dailyMinutes : 20,
-                              selectionData:duplicate ? old.selectionData : nil)
+                              selectionData:duplicate ? old.selectionData : nil,
+                              language:old.language,theme:old.theme)
         items.append(record)
         return persist(items,active:activeID())
     }
