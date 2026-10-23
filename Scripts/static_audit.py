@@ -13,15 +13,15 @@ source_paths=[
     "App/QuickSearchView.swift","App/SettingsView.swift",
     "Shared/SharedConfig.swift","Shared/Localization.swift",
     "Monitor/ActivityMonitorExtension.swift","Shield/BaraShieldDataSource.swift",
-    "Widget/BaraWidget.swift",
+    "Widget/BaraWidget.swift", "Share/ShareReceiverController.swift",
 ]
 required=source_paths+[
     "project.yml",".github/workflows/ios-simulator.yml",
     "Design/capybara.svg","Scripts/build_icons.py",
     "Config/BaraPause-Info.plist","Config/BaraPause.entitlements",
     "Config/Widget.entitlements","Config/Monitor.entitlements",
-    "Config/Shield.entitlements","Config/Widget-Info.plist",
-    "Config/Monitor-Info.plist","Config/Shield-Info.plist",
+    "Config/Shield.entitlements","Config/Share.entitlements","Config/Widget-Info.plist",
+    "Config/Monitor-Info.plist","Config/Shield-Info.plist","Config/Share-Info.plist",
     "Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png",
     "Resources/Assets.xcassets/Capybara.imageset/Capybara-1024.png",
     "Design/BaraPause-4096.png"
@@ -38,14 +38,15 @@ assert any("barapause" in t.get("CFBundleURLSchemes",[])
 for name in ["BaraPause","Monitor","Shield"]:
     p=plist(f"Config/{name}.entitlements")
     assert p.get("com.apple.developer.family-controls") is True, name
-for name in ["BaraPause","Widget","Monitor","Shield"]:
+for name in ["BaraPause","Widget","Monitor","Shield","Share"]:
     p=plist(f"Config/{name}.entitlements")
     assert "group.de.claua.barapause" in p.get("com.apple.security.application-groups",[]), name
 
 for name,point in [
     ("Widget-Info.plist","com.apple.widgetkit-extension"),
     ("Monitor-Info.plist","com.apple.deviceactivity.monitor-extension"),
-    ("Shield-Info.plist","com.apple.ManagedSettingsUI.shield-configuration-service")
+    ("Shield-Info.plist","com.apple.ManagedSettingsUI.shield-configuration-service"),
+    ("Share-Info.plist","com.apple.share-services")
 ]:
     assert plist(f"Config/{name}")["NSExtension"]["NSExtensionPointIdentifier"]==point
 
@@ -61,7 +62,7 @@ for path,expected in [
 
 swift_files=list(root.glob("App/*.swift"))+list(root.glob("Shared/*.swift"))
 swift_files+=list(root.glob("Widget/*.swift"))+list(root.glob("Monitor/*.swift"))
-swift_files+=list(root.glob("Shield/*.swift"))
+swift_files+=list(root.glob("Shield/*.swift"))+list(root.glob("Share/*.swift"))
 names={}
 for file in swift_files:
     content=file.read_text(encoding="utf-8")
@@ -76,4 +77,4 @@ assert "eventDidReachThreshold" in (root/"Monitor/ActivityMonitorExtension.swift
 assert "ShieldConfiguration(" in (root/"Shield/BaraShieldDataSource.swift").read_text(encoding="utf-8")
 assert "@main" in (root/"Widget/BaraWidget.swift").read_text(encoding="utf-8")
 assert "@main" in (root/"App/BaraPauseApp.swift").read_text(encoding="utf-8")
-print("STATIC_AUDIT_PASS",len(swift_files),"Swift files, 4K vector master, 3 extensions, no duplicate public types")
+print("STATIC_AUDIT_PASS",len(swift_files),"Swift files, 4K vector master, 4 extensions, no duplicate public types")
