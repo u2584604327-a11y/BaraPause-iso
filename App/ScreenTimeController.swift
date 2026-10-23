@@ -36,7 +36,7 @@ final class ScreenTimeController: ObservableObject {
         authorized = AuthorizationCenter.shared.authorizationStatus == .approved
         let scheduled = center.activities.contains(activity)
         monitoring = authorized && scheduled
-        needsRecovery = SharedConfig.defaults.bool(forKey:"monitorEnabled") && !scheduled
+        needsRecovery = SharedConfig.defaults.bool(forKey:"monitorEnabled") && (!scheduled || !authorized)
     }
 
     func restoreMonitoringIfRequested() {
@@ -157,6 +157,9 @@ final class ScreenTimeController: ObservableObject {
             SharedConfig.defaults.set(webTokens,forKey:"eventWebTokens")
             SharedConfig.defaults.set(minutes,forKey:SharedConfig.limitKey)
             SharedConfig.defaults.set(false,forKey:SharedConfig.limitReachedKey)
+            // Remember the user-requested state even if registration fails.
+            // On the next foreground opening, offer an explicit recovery button.
+            SharedConfig.defaults.set(true,forKey:"monitorEnabled")
             center.stopMonitoring([activity])
             ManagedSettingsStore().clearAllSettings()
             try center.startMonitoring(activity,during:schedule,events:events)
@@ -167,7 +170,7 @@ final class ScreenTimeController: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
             monitoring = false
-            SharedConfig.defaults.set(false,forKey:"monitorEnabled")
+            SharedConfig.defaults.set(true,forKey:"monitorEnabled")
             needsRecovery=true
         }
     }
