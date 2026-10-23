@@ -68,6 +68,14 @@ final class ScreenTimeController: ObservableObject {
             errorMessage="无法切换存档，已恢复旧规则。"
             return
         }
+        if let language=next.language,
+           ["system","zh-Hans","zh-Hant","en","ja"].contains(language) {
+            SharedConfig.defaults.set(language,forKey:"language")
+        }
+        if let theme=next.theme,
+           ["system","light","dark","eye"].contains(theme) {
+            SharedConfig.defaults.set(theme,forKey:"theme")
+        }
         SharedConfig.defaults.set(next.selectionData,forKey:SharedConfig.selectionKey)
         SharedConfig.defaults.set(next.dailyMinutes,forKey:SharedConfig.limitKey)
         if wasRunning && (!selection.applicationTokens.isEmpty ||
