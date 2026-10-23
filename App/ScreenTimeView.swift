@@ -54,7 +54,7 @@ struct ScreenTimeView: View {
                     Button("重新登记系统监控") {
                         showRepairConfirmation=true
                     }.tint(.orange)
-                    Text("重新登记会重置该次监控阈值的累计周期；必须由你确认。")
+                    Text("系统会继续计入今天此前的使用时间；如果已超限，重新登记可能立即触发 Shield。")
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Button(didCopy ? "诊断已复制" : "复制无敏感信息的诊断") {
@@ -105,7 +105,7 @@ struct ScreenTimeView: View {
             Button("取消",role:.cancel) {}
             Button("确认重新登记") { controller.enableDailyLimit() }
         } message: {
-            Text("这会停止旧监控并创建新周期，已累计但未达到阈值的时间可能重新计算。")
+            Text("将重新建立系统监控，包含今天此前的使用时间。若已超过限额，可能立即显示系统限制页。")
         }
         .confirmationDialog("关闭所有 BaraPause 的 Screen Time 限制？",
                             isPresented:$showStopConfirmation) {
