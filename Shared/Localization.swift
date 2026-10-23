@@ -60,7 +60,22 @@ enum TextKey {
             "history":"最近の検索","open":"開く","minutes":"分","shield":"システム制限"
         ]
         let base=en[key] ?? key
-        switch lang {
+        let resolved: String
+        if lang == "system" {
+            let preferred = Locale.preferredLanguages.first?.lowercased() ?? "en"
+            if preferred.hasPrefix("zh-hant") || preferred.hasPrefix("zh-tw") || preferred.hasPrefix("zh-hk") {
+                resolved = "zh-Hant"
+            } else if preferred.hasPrefix("zh") {
+                resolved = "zh-Hans"
+            } else if preferred.hasPrefix("ja") {
+                resolved = "ja"
+            } else {
+                resolved = "en"
+            }
+        } else {
+            resolved = lang
+        }
+        switch resolved {
         case "zh-Hans": return zh[key] ?? base
         case "zh-Hant": return tw[key] ?? zh[key] ?? base
         case "ja": return ja[key] ?? base
