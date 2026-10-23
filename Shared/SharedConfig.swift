@@ -3,7 +3,10 @@ import Foundation
 enum SharedConfig {
     static let groupID = "group.de.claua.barapause"
     static var groupDefaults: UserDefaults? { UserDefaults(suiteName: groupID) }
-    static var appGroupAvailable: Bool { groupDefaults != nil }
+    static var appGroupAvailable: Bool {
+        groupDefaults != nil &&
+        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier:groupID) != nil
+    }
 
     // Local preview features may use standard defaults; Screen Time never may.
     static var defaults: UserDefaults { groupDefaults ?? .standard }
@@ -12,6 +15,7 @@ enum SharedConfig {
     static let activityPrefix = "barapause.daily."
     static let selectionKey = "screenTimeSelection"
     static let limitKey = "dailyLimitMinutes"
+    static let appliedLimitKey = "registeredLimitMinutes"
     static let focusEndKey = "focusEnd"
     static let limitReachedKey = "limitReached"
     static let searchHistoryKey = "searchHistory"
