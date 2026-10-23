@@ -28,3 +28,22 @@
 iOS 不允许第三方常驻跨 App 悬浮窗、无授权读取所有已安装 App、任意调用其他 App 私有搜索页。BaraPause 只使用 Apple 官方授权和用户确认的 URL/Universal Links。专注计时是本应用内计时，不等同于已经授权且生效的系统限制。
 
 **目前没有经真实 iPhone 验证的 IPA，也没有未经你授权的自动签名或发布。**
+
+
+## V1.1 多存档与系统持续性（候选）
+
+- 进入「受限 App」→「多存档 · 快速切换」，最多保存 **8 套本地档位**。
+- 每套独立保存 App/类别/网站的匿名 Tokens、每日限额、语言与主题；允许创建空档、复制、重命名、删除、明确确认切换。
+- 切换前保存旧档；若系统原先正监测，会停用旧规则并为新档重新申请 DeviceActivity 计划；空档不会偷偷保留旧 App 的 Shield。
+- 返回受限 App 页面时，检查 `DeviceActivityCenter.activities` 和授权；若检测到计划中断，显示**手动恢复系统监控**，不能伪造“后台始终在线”。
+- 在选择器关闭或离开页面时，保存未提交的受限 App 选择草稿。
+- 当系统触发阈值时，由 DeviceActivityMonitor Extension 执行限制，无需 App 自己持续在后台运行。
+- 跨设备 JSON 配置备份**不包含**系统匿名 Tokens；iOS 不保证匿名 Tokens 跨设备可用。
+
+## 构建门禁（严禁虚报 IPA）
+
+本仓库在 GitHub Actions 有一个**手动** macOS Simulator 工作流：`iOS simulator validation`。它生成资源、校验 plist/entitlement、解析 Swift 并执行 Xcode Simulator 编译，**不签名、不生成 IPA**。本地开发者需要在 Xcode 中完成 Family Controls entitlement、App Group、Provisioning Profile 的开发者证书配置后真机验收。
+
+提交前的最低真机用例：授权→添加目标 App→限额触发 Shield；杀掉主 App 后系统监控继续（扩展独立执行）；撤销 Screen Time 权限显示失效；多档切换后旧 App 不再被原档限制；重启后档位、剩余专注时长和已选规则保留。不能以模拟器或静态检查替代这些验收。
+
+本阶段仍为源代码候选，**没有任何可验证已签名 IPA**。
