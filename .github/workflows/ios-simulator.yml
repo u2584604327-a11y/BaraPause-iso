@@ -1,12 +1,14 @@
 name: iOS simulator validation
 on:
+  push:
+    branches: [ feature/ios-v1_1-profiles-continuity ]
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   build:
     runs-on: macos-15
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - name: Xcode environment
@@ -40,6 +42,12 @@ jobs:
           xcodebuild -project BaraPause.xcodeproj -scheme BaraPause \
             -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO build 2>&1 | tee xcodebuild.log
+      - name: Collect build results
+        if: always()
+        run: |
+          printf "COMMIT: "
+          git rev-parse HEAD
+          test -f project.yml
       - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v4
