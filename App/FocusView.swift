@@ -1,4 +1,5 @@
 import SwiftUI
+import WidgetKit
 
 struct FocusView: View {
     @AppStorage(SharedConfig.focusEndKey,store: SharedConfig.defaults) private var focusEnd = 0.0
@@ -28,9 +29,11 @@ struct FocusView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+                Stepper("\(selectedMinutes) \(tr("minutes"))",value:$selectedMinutes,in:5...180,step:5)
                 Button {
                     SharedConfig.startFocus(minutes: selectedMinutes)
                     focusEnd=SharedConfig.defaults.double(forKey: SharedConfig.focusEndKey)
+                    WidgetCenter.shared.reloadAllTimelines()
                 } label: {
                     Label(tr("focusStart"),systemImage: "play.fill")
                         .frame(maxWidth: .infinity)
@@ -39,6 +42,7 @@ struct FocusView: View {
                 Button {
                     SharedConfig.endFocus()
                     focusEnd=0
+                    WidgetCenter.shared.reloadAllTimelines()
                 } label: {
                     Label(tr("focusStop"),systemImage: "stop.circle")
                         .frame(maxWidth: .infinity)
