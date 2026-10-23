@@ -16,9 +16,23 @@ struct ScreenTimeView: View {
     var body: some View {
         Form {
             Section {
+                NavigationLink {
+                    ProfilesView(controller:controller)
+                } label: {
+                    Label("多存档 · 快速切换",systemImage:"square.stack.3d.up")
+                }
+                Text("只运行当前存档的一套 Screen Time 规则。")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+            Section {
                 LabeledContent(tr("permission")) {
                     Label(controller.authorized ? tr("approved") : tr("awaiting"),
                           systemImage: controller.authorized ? "checkmark.shield.fill" : "lock.shield")
+                }
+                if controller.needsRecovery {
+                    Label("系统监控计划中断或不存在",systemImage:"exclamationmark.triangle")
+                        .foregroundStyle(.orange)
+                    Button("手动恢复系统监控") { controller.restoreMonitoringIfRequested() }
                 }
                 Button(tr("authorize")) {
                     Task { await controller.requestAccess() }
@@ -57,8 +71,6 @@ struct ScreenTimeView: View {
             }
         }
         .familyActivityPicker(isPresented:$showPicker,selection:$controller.selection)
-        .onAppear {
-            controller.authorized = AuthorizationCenter.shared.authorizationStatus == .approved
-        }
+        .onAppear { controller.refreshStatus() }
     }
 }
