@@ -4,8 +4,7 @@ import WidgetKit
 struct FocusView: View {
     @AppStorage(SharedConfig.focusEndKey,store: SharedConfig.defaults) private var focusEnd = 0.0
     @AppStorage("language",store: SharedConfig.defaults) private var lang = "system"
-    @State private var selectedMinutes=25
-    @State private var showCustom=false
+    @AppStorage("focusPresetMinutes",store:SharedConfig.defaults) private var selectedMinutes=25
 
     private func tr(_ key:String)->String { TextKey.label(key,lang: lang) }
 
