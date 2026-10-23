@@ -3,6 +3,7 @@ import Foundation
 enum TextKey {
     static func label(_ key: String, lang: String) -> String {
         let zh: [String: String] = [
+            "shieldTitle":"BaraPause · 休息一下", "shieldSubtitle":"使用时间达到设定限额，回到当前专注任务吧。", "shieldAction":"继续休息",
             "home":"首页", "focus":"专注", "apps":"受限 App", "search":"快捷搜索",
             "settings":"设置", "authorize":"申请屏幕使用时间授权",
             "choose":"选择需要提醒的 App / 网站", "enable":"开启每日限额",
@@ -22,6 +23,7 @@ enum TextKey {
             "familyNotice":"Family Controls 权限需要真实 iPhone 和有效的 Apple 开发者授权。"
         ]
         let en: [String:String] = [
+            "shieldTitle":"BaraPause · Time for a break", "shieldSubtitle":"Your usage limit has been reached. Return to your focus task.", "shieldAction":"Take a break",
             "home":"Home","focus":"Focus","apps":"Limited Apps","search":"Quick Search",
             "settings":"Settings","authorize":"Authorize Screen Time",
             "choose":"Choose apps and websites","enable":"Enable daily limit",
@@ -42,6 +44,7 @@ enum TextKey {
             "familyNotice":"Family Controls requires a physical device and valid Apple entitlements."
         ]
         let tw: [String:String] = [
+            "shieldTitle":"BaraPause · 休息一下", "shieldSubtitle":"已達設定上限，回到專注任務。", "shieldAction":"繼續休息",
             "home":"首頁","focus":"專注","apps":"受限 App","search":"快速搜尋",
             "settings":"設定","authorize":"授權螢幕使用時間","choose":"選擇 App／網站",
             "enable":"啟用每日上限","disable":"停止每日上限","language":"語言",
@@ -51,6 +54,7 @@ enum TextKey {
             "history":"最近搜尋","open":"開啟","minutes":"分鐘","shield":"系統限制"
         ]
         let ja: [String:String] = [
+            "shieldTitle":"BaraPause · 休憩しましょう", "shieldSubtitle":"使用時間の上限に達しました。集中に戻りましょう。", "shieldAction":"休憩する",
             "home":"ホーム","focus":"集中","apps":"制限アプリ","search":"クイック検索",
             "settings":"設定","authorize":"スクリーンタイムを許可","choose":"アプリを選択",
             "enable":"一日の制限を有効化","disable":"制限を停止","language":"言語",
