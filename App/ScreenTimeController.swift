@@ -38,6 +38,10 @@ final class ScreenTimeController: ObservableObject {
 
     func enableDailyLimit() {
         errorMessage = nil
+        guard SharedConfig.appGroupAvailable else {
+            errorMessage = "App Group 未配置或不可用，无法安全启动 Screen Time 扩展。"
+            return
+        }
         guard AuthorizationCenter.shared.authorizationStatus == .approved else {
             errorMessage = "Authorize Screen Time first."
             return
