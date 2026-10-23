@@ -7,7 +7,7 @@ final class BaraShieldDataSource: ShieldConfigurationDataSource {
         ShieldConfiguration(
             backgroundBlurStyle: .systemMaterial,
             backgroundColor: UIColor(red: 0.97, green: 0.94, blue: 0.86, alpha: 1),
-            icon: UIImage(systemName:"leaf.fill"),
+            icon: ArtworkStore.loadImage() ?? UIImage(systemName:"leaf.fill"),
             title: ShieldConfiguration.Label(
                 text:"BaraPause · 休息一下",
                 color: UIColor(red:0.28,green:0.42,blue:0.32,alpha:1)
