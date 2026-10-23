@@ -1,0 +1,76 @@
+name: BaraPause iOS Simulator app package
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/ios-v1_2-simulator-package-signing
+    paths:
+      - ci/simulator-bundle-request.txt
+permissions:
+  contents: read
+jobs:
+  simulator-bundle:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - name: Checkout specific iOS source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Confirm source identity
+        run: |
+          git rev-parse HEAD
+          test -f project.yml
+          xcodebuild -version
+      - name: Install project generator
+        run: brew install xcodegen cairo
+      - name: Generate crisp capybara assets and validate project sources
+        run: |
+          set -euo pipefail
+          python3 -m venv .venv
+          .venv/bin/pip install cairosvg
+          .venv/bin/python Scripts/build_icons.py
+          .venv/bin/python Scripts/static_audit.py
+      - name: Check Swift syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          find App Shared Widget Monitor Shield Share -name '*.swift' -print0 |
+            while IFS= read -r -d '' file; do
+              xcrun swiftc -frontend -parse "$file"
+            done
+      - name: Generate Xcode project
+        run: |
+          xcodegen generate --spec project.yml
+          xcodebuild -list -project BaraPause.xcodeproj
+      - name: Compile unsigned Simulator bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          set -o pipefail
+          xcodebuild -project BaraPause.xcodeproj -scheme BaraPause \
+            -configuration Debug -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$PWD/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO build 2>&1 | tee xcodebuild.log
+      - name: Validate and package real Simulator .app
+        run: bash Scripts/package_simulator_app.sh
+      - name: Upload unsigned Simulator .app bundle
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BaraPause-iOS-Simulator-app-v1_2
+          path: |
+            artifacts/BaraPause-iOS-Simulator.app.zip
+            artifacts/SHA256SUMS.txt
+            artifacts/README.txt
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload diagnostic build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BaraPause-iOS-Simulator-log-v1_2
+          path: xcodebuild.log
+          if-no-files-found: ignore
+          retention-days: 7
