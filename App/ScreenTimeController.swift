@@ -69,15 +69,15 @@ final class ScreenTimeController: ObservableObject {
             var events: [DeviceActivityEvent.Name:DeviceActivityEvent] = [:]
             let threshold = DateComponents(minute:minutes)
             for (i, token) in apps.enumerated() {
-                events[DeviceActivityEvent.Name("app.\\(i)")] =
+                events[DeviceActivityEvent.Name("app.\(i)")] =
                     DeviceActivityEvent(applications:[token],threshold:threshold)
             }
             for (i, token) in categories.enumerated() {
-                events[DeviceActivityEvent.Name("category.\\(i)")] =
+                events[DeviceActivityEvent.Name("category.\(i)")] =
                     DeviceActivityEvent(categories:[token],threshold:threshold)
             }
             for (i, token) in websites.enumerated() {
-                events[DeviceActivityEvent.Name("web.\\(i)")] =
+                events[DeviceActivityEvent.Name("web.\(i)")] =
                     DeviceActivityEvent(webDomains:[token],threshold:threshold)
             }
             // Store event-index mappings before monitoring. Do not persist anonymous tokens in export.
